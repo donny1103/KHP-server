@@ -46,7 +46,7 @@ wss.on('connection', (ws) => {
   // Broadcast user count
   const userCount = {
     type: 'updateCount',
-    count: Object.keys(PENDING_USERS).length,
+    count: Object.keys(PENDING_USERS.queue).length,
   }
 
   ws.send(JSON.stringify(PENDING_USERS));
@@ -56,6 +56,13 @@ wss.on('connection', (ws) => {
   ws.on('message', data => {
     const message = JSON.parse(data);
     switch (message.type) {
+      case 'user':
+        if (!message.id) {
+          message.id = uuidv4();
+        };
+        PENDING_USERS[message.id] = message;
+        wss.broadcast(PENDING_USERS);
+        break;
       case 'postMessage':
         console.log(`User ${message.username} said ${message.content}`)
         message.id = uuidv4();
