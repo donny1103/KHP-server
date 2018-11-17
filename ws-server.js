@@ -30,14 +30,6 @@ wss.broadcast = data => {
 wss.on('connection', (ws) => {
   console.log('Client connected. Total', wss.clients.size);
   // New user detected
-  // Generate and send a random unique color for each new client.
-  const userColor = {
-    type: 'setColor',
-    color: uniqueColor(usedColors),
-  }
-  usedColors.push(userColor.color);
-  ws.send(JSON.stringify(userColor));
-
   // Broadcast user count
   const userCount = {
     type: 'updateCount',
@@ -51,7 +43,6 @@ wss.on('connection', (ws) => {
     switch (message.type) {
       case 'postMessage':
         console.log(`User ${message.username} said ${message.content}`)
-        message.imgs = imgparse(message.content);
         message.id = uuidv4();
         message.type = 'incomingMessage';
         wss.broadcast(JSON.stringify(message));
@@ -69,8 +60,6 @@ wss.on('connection', (ws) => {
   // Set up a callback for when a client closes the socket. This usually means they closed their browser.
   ws.on('close', () => {
     console.log('Client disconnected');
-    // Remove user color from used
-    usedColors.splice(usedColors.indexOf(userColor.color), 1);
     // Broadcast new user count
     userCount.count = wss.clients.size;
     wss.broadcast(JSON.stringify(userCount));
