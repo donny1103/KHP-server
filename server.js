@@ -30,7 +30,7 @@ app.get('/pendingusers', (req, res) => {
 app.post('/user', (req, res) => {
   console.log(req.body);
   user = req.body;
-  PENDING_USERS[user.id] = user
+  PENDING_USERS[user.userId] = user
   res.send()
 });
 
