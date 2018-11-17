@@ -3,6 +3,16 @@ const WebSocket = require('ws');
 const SocketServer = WebSocket.Server;
 const uuidv4 = require('uuid/v4');
 
+// Dummy Data
+PENDING_USERS = {
+  '0243cf5e-98d3-4e17-1234-151e8b7ef750': { age: 5, name: 'Raymond', 'severity': 55, time: new Date() },
+  '0243cf5e-98d3-4e17-1234-151e8b7e2323': { age: 8, name: 'Donny', 'severity': 100, time: new Date() },
+  '0243cf5e-98d3-4e17-1234-151e8b7e2342': { age: 10, name: 'Alfred', 'severity': 20, time: new Date() },
+  '0243cf5e-98d3-4e17-1234-151esd7e2342': { age: 10, name: 'Bob', 'severity': 60, time: new Date() },
+  '0243cf5e-98d3-4e17-1234-151e8s7e2342': { age: 6, name: 'Food', 'severity': 33, time: new Date() },
+  '0243cf5e-98d3-4e17-1234-dd1e8b7e2342': { age: 7, name: 'Fish', 'severity': 28, time: new Date() },
+}
+
 // Set the port to 3001
 const PORT = 3001;
 
@@ -35,7 +45,8 @@ wss.on('connection', (ws) => {
     type: 'updateCount',
     count: wss.clients.size,
   }
-  wss.broadcast(JSON.stringify(userCount));
+
+  ws.send(JSON.stringify(PENDING_USERS));
 
   // Handling incoming messages.
   ws.on('message', data => {
