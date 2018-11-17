@@ -39,6 +39,12 @@ app.post('/user', (req, res) => {
   res.send()
 });
 
+// DELETE routes
+app.delete('/user', (req, res) => {
+  delete PENDING_USERS[req.body.id]
+  res.status(200).send()
+})
+
 // Server Listens
 app.listen(PORT);
 console.log(`Server listening on port ${PORT}`);
