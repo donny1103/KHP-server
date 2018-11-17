@@ -49,8 +49,7 @@ wss.on('connection', (ws) => {
     count: Object.keys(PENDING_USERS.queue).length,
   }
 
-  ws.send(JSON.stringify(PENDING_USERS));
-  wss.broadcast(JSON.stringify(userCount));
+  wss.broadcast(JSON.stringify(PENDING_USERS));
 
   // Handling incoming messages.
   ws.on('message', data => {
@@ -61,7 +60,9 @@ wss.on('connection', (ws) => {
           message.id = uuidv4();
         };
         PENDING_USERS[message.id] = message;
-        wss.broadcast(PENDING_USERS);
+        userCount.count = Object.keys(PENDING_USERS.queue).length
+        wss.broadcast(JSON.stringify(PENDING_USERS));
+        wss.broadcast(JSON.stringify(userCount));
         break;
       case 'postMessage':
         console.log(`User ${message.username} said ${message.content}`)
