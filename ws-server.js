@@ -95,9 +95,9 @@ wss.on('connection', (ws) => {
   ws.on('close', () => {
     console.log('Client disconnected');
     delete PENDING_USERS.queue[userId.id]
+    wss.broadcast(JSON.stringify(PENDING_USERS));
     // Broadcast new user count
     queueCount.count = Object.keys(PENDING_USERS.queue).length;
-    // console.log(queueCount);
     wss.broadcast(JSON.stringify(queueCount));
   })
 });
