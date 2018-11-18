@@ -43,12 +43,18 @@ wss.broadcast = data => {
 wss.on('connection', (ws) => {
   console.log('Client connected. Total', wss.clients.size);
   // New user detected
+  // Assign ID
+  const userId = {
+    type: 'id',
+    id: uuidv4(),
+  }
+  ws.send(JSON.stringify(userId));
   // Broadcast user count
-  const userCount = {
+  const queueCount = {
     type: 'updateCount',
     count: Object.keys(PENDING_USERS.queue).length,
   }
-
+  wss.broadcast(JSON.stringify(queueCount));
   wss.broadcast(JSON.stringify(PENDING_USERS));
 
   // Handling incoming messages.
@@ -56,13 +62,10 @@ wss.on('connection', (ws) => {
     const message = JSON.parse(data);
     switch (message.type) {
       case 'user':
-        if (!message.id) {
-          message.id = uuidv4();
-        };
         PENDING_USERS[message.id] = message;
-        userCount.count = Object.keys(PENDING_USERS.queue).length
+        queueCount.count = Object.keys(PENDING_USERS.queue).length
         wss.broadcast(JSON.stringify(PENDING_USERS));
-        wss.broadcast(JSON.stringify(userCount));
+        wss.broadcast(JSON.stringify(queueCount));
         break;
       case 'postMessage':
         console.log(`User ${message.username} said ${message.content}`)
@@ -84,7 +87,7 @@ wss.on('connection', (ws) => {
   ws.on('close', () => {
     console.log('Client disconnected');
     // Broadcast new user count
-    userCount.count = wss.clients.size;
-    wss.broadcast(JSON.stringify(userCount));
+    queueCount.count = Object.keys(PENDING_USERS.queue).length;
+    wss.broadcast(JSON.stringify(queueCount));
   })
 });
