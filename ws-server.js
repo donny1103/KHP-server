@@ -62,8 +62,16 @@ wss.on('connection', (ws) => {
     const message = JSON.parse(data);
     switch (message.type) {
       case 'user':
-        PENDING_USERS[message.id] = message;
-        queueCount.count = Object.keys(PENDING_USERS.queue).length
+        queueCount.count = Object.keys(PENDING_USERS.queue).length;
+
+        if (message.sadValue) {
+          message.severity = Math.round(((message.sadValue + message.scaredValue) / 14) * 100);
+        } else {
+          message.severity = 1;
+        }
+        console.log(PENDING_USERS.queue[message.userId] = message);
+        console.log('added/updated user');
+
         wss.broadcast(JSON.stringify(PENDING_USERS));
         wss.broadcast(JSON.stringify(queueCount));
         break;
@@ -86,8 +94,10 @@ wss.on('connection', (ws) => {
   // Set up a callback for when a client closes the socket. This usually means they closed their browser.
   ws.on('close', () => {
     console.log('Client disconnected');
+    delete PENDING_USERS.queue[userId.id]
     // Broadcast new user count
     queueCount.count = Object.keys(PENDING_USERS.queue).length;
+    // console.log(queueCount);
     wss.broadcast(JSON.stringify(queueCount));
   })
 });
