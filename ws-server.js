@@ -7,12 +7,12 @@ const uuidv4 = require('uuid/v4');
 PENDING_USERS = {
   type: 'queue',
   queue: {
-    '0243cf5e-98d3-4e17-1234-151e8b7ef750': { age: 5, name: 'Raymond', 'severity': 55, time: new Date() },
-    '0243cf5e-98d3-4e17-1234-151e8b7e2323': { age: 8, name: 'Donny', 'severity': 100, time: new Date() },
-    '0243cf5e-98d3-4e17-1234-151e8b7e2342': { age: 10, name: 'Alfred', 'severity': 20, time: new Date() },
-    '0243cf5e-98d3-4e17-1234-151esd7e2342': { age: 10, name: 'Bob', 'severity': 60, time: new Date() },
-    '0243cf5e-98d3-4e17-1234-151e8s7e2342': { age: 6, name: 'Food', 'severity': 33, time: new Date() },
-    '0243cf5e-98d3-4e17-1234-dd1e8b7e2342': { age: 7, name: 'Fish', 'severity': 28, time: new Date() },
+    '0243cf5e-98d3-4e17-1234-151e8b7ef750': { age: 5, name: 'Raymond', 'severity': 55, time: new Date(), sadValue: 6, scaredValue: 3 },
+    '0243cf5e-98d3-4e17-1234-151e8b7e2323': { age: 8, name: 'Donny', 'severity': 100, time: new Date(), sadValue: 3, scaredValue: 3  },
+    '0243cf5e-98d3-4e17-1234-151e8b7e2342': { age: 10, name: 'Alfred', 'severity': 20, time: new Date(), sadValue: 6, scaredValue: 7  },
+    '0243cf5e-98d3-4e17-1234-151esd7e2342': { age: 10, name: 'Bob', 'severity': 60, time: new Date(), sadValue: 3, scaredValue: 3  },
+    '0243cf5e-98d3-4e17-1234-151e8s7e2342': { age: 6, name: 'Food', 'severity': 33, time: new Date(), sadValue: 2, scaredValue: 7  },
+    '0243cf5e-98d3-4e17-1234-dd1e8b7e2342': { age: 7, name: 'Fish', 'severity': 28, time: new Date(), sadValue: 6, scaredValue: 6  },
   }
 }
 
@@ -75,15 +75,8 @@ wss.on('connection', (ws) => {
         wss.broadcast(JSON.stringify(PENDING_USERS));
         wss.broadcast(JSON.stringify(queueCount));
         break;
-      case 'postMessage':
-        console.log(`User ${message.username} said ${message.content}`)
-        message.id = uuidv4();
-        message.type = 'incomingMessage';
-        wss.broadcast(JSON.stringify(message));
-        break;
-      case 'postNotification':
-        message.id = uuidv4();
-        message.type = 'incomingNotification';
+      case 'startChat':
+        console.log(`Start Chat ${message.counsellorName} with ${message.id}`);
         wss.broadcast(JSON.stringify(message));
         break;
       default:
