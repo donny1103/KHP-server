@@ -2,7 +2,7 @@ const express = require('express');
 const WebSocket = require('ws');
 const SocketServer = WebSocket.Server;
 const uuidv4 = require('uuid/v4');
-
+const moment = require('moment');
 // Dummy Data
 PENDING_USERS = {
   type: 'queue',
@@ -44,19 +44,17 @@ wss.broadcast = (data, id, action) => {
       if (client.type === id) {
         // Broadcase to client type: counsellor/users
         client.send(data);
-        console.log(`Send data to ${client.type}`);
       }
 
       if (client.id === id && !action) {
         // Send data to specific user, mainly for sending message
         client.send(data);
-        console.log(`Send data to ${client.id}`);
       } 
       
       // Broadcast to all but not this specific one
       if (action === 'excluded' && id !== client.id) {
         client.send(data);
-        console.log('Excluded broadcase to', client.id)
+        console.log('Broadcase exclude:', client.id)
       }
     }
   })
@@ -74,9 +72,9 @@ wss.on('connection', (ws) => {
     id: uuidv4(),
   };
 
+  // Assign id as a key-value pair to the socket object
   ws.id = userId.id;
   ws.send(JSON.stringify(userId));
-  ws.send(JSON.stringify(PENDING_USERS));
 
   // Broadcast user count
   const queueCount = {
@@ -106,22 +104,43 @@ wss.on('connection', (ws) => {
       // Counsellor connected
       case 'counsellor':
         ws.type = message.type;
+        ws.send(JSON.stringify(PENDING_USERS));
         break;
 
       case 'startChat':
-        let counsellorId = message.counsellor.id;
-        let userId = message.id;
-        console.log(`Start Chat ${message.counsellor.name} with ${userId}`);
-
-        ENGAGED_USERS[userId] = {...PENDING_USERS.queue[userId], counsellorId}
-        delete PENDING_USERS.queue[userId];
-        console.log(ENGAGED_USERS);
-
-        wss.broadcast(JSON.stringify(PENDING_USERS), 'counsellor');
+        console.log(`Start Chat ${message.counsellor.name} with ${message.userId}`);
+        ENGAGED_USERS[message.userId] = {
+          ...PENDING_USERS.queue[message.userId],
+          userId:message.userId, 
+          counsellorId: message.counsellor.id, 
+          messages:[]
+        };
+        
+        delete PENDING_USERS.queue[message.userId];
+        wss.broadcast(JSON.stringify(PENDING_USERS), message.counsellor.id, 'excluded');
+        wss.broadcast(JSON.stringify({
+          type:'toCounsellorMsg',
+          counselerId: message.counsellor.id,
+          userId: message.userId,
+          text: `Hi I am not sad, not the much ${message.counsellor.name}`,
+          time: moment().format('h:mm:ss a')
+        }), message.counsellor.id);
         break;
+
       case 'toUserMsg':
-        console.log('receiving msg');
+        if(ENGAGED_USERS[message.userId]){
+          ENGAGED_USERS[message.userId].messages.push({...message});
+          wss.broadcast(JSON.stringify(message), message.userId);
+        }
         break;
+
+      case 'toCounsellorMsg':
+        if(ENGAGED_USERS[message.userId]){
+          ENGAGED_USERS[message.userId].messages.push({...message});
+          wss.broadcast(JSON.stringify(message), message.counsellorId);
+        }
+        break;
+
       default:
         console.log('Message not recognised:', message);
     }
@@ -129,22 +148,35 @@ wss.on('connection', (ws) => {
 
   // Set up a callback for when a client closes the socket. This usually means they closed their browser.
   ws.on('close', () => {
-    console.log('Client disconnected');
 
-    // 
-    if (ws.type === 'user'){
-      queueCount.count = Object.keys(PENDING_USERS.queue).length;
-      Object.keys(PENDING_USERS.queue).includes(userId.id) ? 
-      delete PENDING_USERS.queue[userId.id] :
-      delete ENGAGED_USERS[userId.id];
+    switch(ws.type){
+      case 'user':
+        queueCount.count = Object.keys(PENDING_USERS.queue).length;
+        if (ENGAGED_USERS[userId.id].counsellorId){
+          console.log('user disconect to this counsellor');
+          let disconnectMsgToCounsellor = {
+            type: 'disconnect',
+            id: userId.id
+          }
+          wss.broadcast(JSON.stringify(disconnectMsgToCounsellor), ENGAGED_USERS[userId.id].counsellorId);
+        }
 
-      // Disconnect user
-      wss.broadcast(JSON.stringify(PENDING_USERS),'counsellor');
+        Object.keys(PENDING_USERS.queue).includes(userId.id) ? 
+        delete PENDING_USERS.queue[userId.id] :
+        delete ENGAGED_USERS[userId.id];
 
-      // Broadcast new user count
-      wss.broadcast(JSON.stringify(queueCount),'user');
+        // Disconnect user
+        wss.broadcast(JSON.stringify(PENDING_USERS),'counsellor');
+        
+        // Broadcast new user count
+        wss.broadcast(JSON.stringify(queueCount),'user');
+        console.log('User disconnected');
+        break;
+      case 'counsellor':
+        console.log('Counsellor disconnected');
+        break;
+      default:
+        console.log('Disconnect type not recognised:', ws.type);
     }
-
-    
   });
 });
