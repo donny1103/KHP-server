@@ -25,6 +25,9 @@ const server = express()
   .use(express.static('public'))
   .listen(PORT, '0.0.0.0', 'localhost', () => console.log(`Listening on ${PORT}`));
 
+// Create an object to hold all connected clients
+const webSockets = {};
+
 // Create the WebSockets server
 const wss = new SocketServer({ server });
 
@@ -48,6 +51,12 @@ wss.on('connection', (ws) => {
     type: 'id',
     id: uuidv4(),
   }
+
+  webSockets[userId.id] = {
+    id: userId.id,
+    socket: ws
+  }
+
   ws.send(JSON.stringify(userId));
   // Broadcast user count
   const queueCount = {
@@ -79,6 +88,12 @@ wss.on('connection', (ws) => {
         console.log(`Start Chat ${message.counsellorName} with ${message.id}`);
         wss.broadcast(JSON.stringify(message));
         break;
+      case 'toUserMsg':
+        let userWs = webSockets[message.userId];
+        if (userWs){
+          userWs.send(JSON.stringify(message.text));
+          console.log(`message to user ${message.userId}:`,message.text);
+        }
       default:
         console.log('Message not recognised:', message);
     }
