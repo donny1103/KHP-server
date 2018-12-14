@@ -25,17 +25,17 @@ const server = express()
   .use(express.static('public'))
   .listen(PORT, '0.0.0.0', 'localhost', () => console.log(`Listening on ${PORT}`));
 
-// Create an object to hold all connected clients
-const webSockets = {};
-
 // Create the WebSockets server
 const wss = new SocketServer({ server });
 
 // Set broadcast function;
-wss.broadcast = data => {
+wss.broadcast = (data, id) => {
   wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
+    if (client.readyState === WebSocket.OPEN && !id) {
       client.send(data);
+    }
+    if (id){
+      console.log('yeah!!!');
     }
   })
 }
@@ -50,19 +50,17 @@ wss.on('connection', (ws) => {
   const userId = {
     type: 'id',
     id: uuidv4(),
-  }
+  };
 
-  webSockets[userId.id] = {
-    id: userId.id,
-    socket: ws
-  }
+  ws.id = userId.id;
 
   ws.send(JSON.stringify(userId));
   // Broadcast user count
   const queueCount = {
     type: 'updateCount',
     count: Object.keys(PENDING_USERS.queue).length,
-  }
+  };
+
   wss.broadcast(JSON.stringify(queueCount));
   wss.broadcast(JSON.stringify(PENDING_USERS));
 
@@ -89,15 +87,12 @@ wss.on('connection', (ws) => {
         wss.broadcast(JSON.stringify(message));
         break;
       case 'toUserMsg':
-        let userWs = webSockets[message.userId];
-        if (userWs){
-          userWs.send(JSON.stringify(message.text));
-          console.log(`message to user ${message.userId}:`,message.text);
-        }
+        console.log('receiving msg');
+        break;
       default:
         console.log('Message not recognised:', message);
     }
-  })
+  });
 
   // Set up a callback for when a client closes the socket. This usually means they closed their browser.
   ws.on('close', () => {
@@ -107,5 +102,5 @@ wss.on('connection', (ws) => {
     // Broadcast new user count
     queueCount.count = Object.keys(PENDING_USERS.queue).length;
     wss.broadcast(JSON.stringify(queueCount));
-  })
+  });
 });
