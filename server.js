@@ -80,7 +80,7 @@ wss.on('connection', (ws) => {
   // Broadcast user count
   const queueCount = {
     type: 'updateCount',
-    count: Object.keys(PENDING_USERS.queue).length,
+    count: 0,
   };
 
   // Handling incoming messages.
@@ -89,8 +89,6 @@ wss.on('connection', (ws) => {
     switch (message.type) {
       case 'user':
         ws.type = message.type;
-        queueCount.count = Object.keys(PENDING_USERS.queue).length;
-
         if (message.sadValue) {
           message.severity = Math.round(((message.sadValue + message.scaredValue) / 14) * 100);
         } else {
@@ -98,10 +96,10 @@ wss.on('connection', (ws) => {
         }
 
         PENDING_USERS.queue[message.userId] = message;
-
-        wss.broadcast(JSON.stringify(queueCount),'user');
+        
+        queueCount.count = Object.keys(PENDING_USERS.queue).length;
+        wss.broadcast(JSON.stringify(queueCount),'user');            // Broadcast new user count
         wss.broadcast(JSON.stringify(PENDING_USERS),'counsellor');
-        //console.log('type user',message);
         break;
       
       // Counsellor connected
@@ -127,7 +125,9 @@ wss.on('connection', (ws) => {
           type: 'startChat',id:message.userId,
           counsellor: {...message.counsellor}
         }), message.userId);
-        //console.log('type startChat',message);
+
+        queueCount.count = Object.keys(PENDING_USERS.queue).length;
+        wss.broadcast(JSON.stringify(queueCount),'user');           // Broadcast new user count
         break;
 
       case 'toUserMsg':
@@ -156,7 +156,7 @@ wss.on('connection', (ws) => {
 
     switch(ws.type){
       case 'user':
-        queueCount.count = Object.keys(PENDING_USERS.queue).length;
+      
         if (ENGAGED_USERS[userId.id] && ENGAGED_USERS[userId.id].counsellorId){
           console.log('user disconect to this counsellor');
           let disconnectMsgToCounsellor = {
@@ -174,6 +174,7 @@ wss.on('connection', (ws) => {
         wss.broadcast(JSON.stringify(PENDING_USERS),'counsellor');
         
         // Broadcast new user count
+        queueCount.count = Object.keys(PENDING_USERS.queue).length;
         wss.broadcast(JSON.stringify(queueCount),'user');
         console.log('User disconnected');
         break;
