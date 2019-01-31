@@ -88,7 +88,6 @@ wss.on('connection', (ws) => {
     const message = JSON.parse(data);
     switch (message.type) {
       case 'user':
-        console.log('type user',message);
         ws.type = message.type;
         queueCount.count = Object.keys(PENDING_USERS.queue).length;
 
@@ -97,17 +96,19 @@ wss.on('connection', (ws) => {
         } else {
           message.severity = 1;
         }
-        //console.log('added/updated user',PENDING_USERS.queue[message.userId] = message);
+
+        PENDING_USERS.queue[message.userId] = message;
 
         wss.broadcast(JSON.stringify(queueCount),'user');
         wss.broadcast(JSON.stringify(PENDING_USERS),'counsellor');
+        //console.log('type user',message);
         break;
       
       // Counsellor connected
       case 'counsellor':
         ws.type = message.type;
         ws.send(JSON.stringify(PENDING_USERS));
-        console.log('type counsellor',message);
+        //console.log('type counsellor',message);
         break;
 
       case 'startChat':
@@ -126,7 +127,7 @@ wss.on('connection', (ws) => {
           type: 'startChat',id:message.userId,
           counsellor: {...message.counsellor}
         }), message.userId);
-        console.log('type startChat',message);
+        //console.log('type startChat',message);
         break;
 
       case 'toUserMsg':
@@ -134,7 +135,7 @@ wss.on('connection', (ws) => {
           ENGAGED_USERS[message.userId].messages.push({...message});
           wss.broadcast(JSON.stringify(message), message.userId);
         }
-        console.log('type toUserMsg',message);
+        //console.log('type toUserMsg',message);
         break;
 
       case 'toCounsellorMsg':
@@ -142,7 +143,7 @@ wss.on('connection', (ws) => {
           ENGAGED_USERS[message.userId].messages.push({...message});
           wss.broadcast(JSON.stringify(message), message.counsellorId);
         }
-        console.log('type toCounsellorMsg',message);
+        //console.log('type toCounsellorMsg',message);
         break;
 
       default:
