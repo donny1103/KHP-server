@@ -7,8 +7,8 @@ const dotenv = require('dotenv').config();
 PENDING_USERS = {
   type: 'queue',
   queue: {
-    '0243cf5e-98d3-4e17-1234-151e8b7ef750': { age: 5, name: 'Raymond', gender: 'male', 'severity': 55, time: new Date(), sadValue: 6, scaredValue: 3, favoriteColor: 'green', careAbout:['friend','teacher','pet','other']},
-    '0243cf5e-98d3-4e17-1234-151e8b7e2323': { age: 8, name: 'Donny', gender: 'male', 'severity': 100, time: new Date(), sadValue: 3, scaredValue: 3, favoriteColor: 'red', careAbout:['friend','sister','brother','dad','mom']},
+    // '0243cf5e-98d3-4e17-1234-151e8b7ef750': { age: 5, name: 'Raymond', gender: 'male', 'severity': 55, time: new Date(), sadValue: 6, scaredValue: 3, favoriteColor: 'green', careAbout:['friend','teacher','pet','other']},
+    // '0243cf5e-98d3-4e17-1234-151e8b7e2323': { age: 8, name: 'Donny', gender: 'male', 'severity': 100, time: new Date(), sadValue: 3, scaredValue: 3, favoriteColor: 'red', careAbout:['friend','sister','brother','dad','mom']},
     // '0243cf5e-98d3-4e17-1234-151e8b7e2342': { age: 10, name: 'Alfred', gender: 'male', 'severity': 20, time: new Date(), sadValue: 6, scaredValue: 7, favoriteColor: 'blue' , careAbout:['friend','sister']},
     // '0243cf5e-98d3-4e17-1234-151esd7e2342': { age: 10, name: 'Jacob', gender: 'male', 'severity': 60, time: new Date(), sadValue: 3, scaredValue: 3, favoriteColor: 'pink' , careAbout:['brother','dad','mom']},
     // '0243cf5e-98d3-4e17-1234-151e8s7e2342': { age: 6, name: 'Kani', gender: 'female', 'severity': 33, time: new Date(), sadValue: 2, scaredValue: 7, favoriteColor: 'red' , careAbout:['dad','mom']},
